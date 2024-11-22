@@ -1,0 +1,91 @@
+#!/bin/python3
+# NOTE: TWO test cases will be passed, rest showing below
+# Compiler Message
+# Time limit exceeded
+# Your code did not execute within the time limits. Please optimize your code. 
+# For more information on execution time limits, refer to the environment page
+import math
+import os
+import random
+import re
+import sys
+
+#
+# Complete the 'chocolateGame' function below.
+#
+# The function is expected to return an INTEGER.
+# The function accepts INTEGER_ARRAY arr as parameter.
+#
+
+def chocolateGame(arr):
+    def can_make_valid_move(sub_arr):
+        n = len(sub_arr)
+        for i in range(n):
+            min_val = sub_arr[i-1] if i > 0 else 0
+            if i < n-1:
+                # Can reduce if greater than previous and can maintain order
+                if sub_arr[i] > min_val or sub_arr[i] < sub_arr[i+1]:
+                    return True
+            else:
+                # Last element just needs to be greater than previous
+                if sub_arr[i] > min_val:
+                    return True
+        return False
+    
+    def is_winning_position(sub_arr, memo):
+        state = tuple(sub_arr)
+        if state in memo:
+            return memo[state]
+        
+        # If no valid moves possible, current player loses
+        if not can_make_valid_move(sub_arr):
+            memo[state] = False
+            return False
+            
+        # Try each possible move
+        for i in range(len(sub_arr)):
+            min_val = sub_arr[i-1] if i > 0 else 0
+            original = sub_arr[i]
+            
+            # Try removing chocolates
+            for new_val in range(min_val, original):
+                # Check if move maintains non-decreasing order
+                if i < len(sub_arr)-1 and new_val > sub_arr[i+1]:
+                    continue
+                    
+                # Make move and check if opponent loses
+                sub_arr[i] = new_val
+                if not is_winning_position(sub_arr, memo):
+                    sub_arr[i] = original
+                    memo[state] = True
+                    return True
+                sub_arr[i] = original
+                
+        memo[state] = False
+        return False
+    
+    n = len(arr)
+    count = 0
+    
+    # Check each possible subsequence
+    for i in range(n):
+        for j in range(i+1, n):
+            sub_arr = arr[i:j+1]
+            if is_winning_position(sub_arr, {}):
+                count += 1
+                
+    return count
+    
+
+if __name__ == '__main__':
+    fptr = open(os.environ['OUTPUT_PATH'], 'w')
+
+    arr_count = int(input().strip())
+
+    arr = list(map(int, input().rstrip().split()))
+
+    result = chocolateGame(arr)
+
+    fptr.write(str(result) + '\n')
+
+    fptr.close()
